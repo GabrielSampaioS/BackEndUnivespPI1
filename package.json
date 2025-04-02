@@ -16,5 +16,9 @@
   "license": "ISC",
   "dependencies": {
     "vercel": "^41.4.1"
-  }
+  },
+
+    "type": "module" // que
+
+  
 }
