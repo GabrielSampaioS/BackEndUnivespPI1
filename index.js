@@ -1,51 +1,46 @@
-import express from 'express';
-import cors from 'cors';
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
+import express from "express";
+import cors from "cors";
 
 const app = express();
+app.use(express.json());
+app.use(cors());
+
 const port = process.env.PORT || 3001;
 
-app.use(cors());
-app.use(express.json());
+const users = [];
 
-let db;
-(async () => {
-  db = await open({
-    filename: './database.db',
-    driver: sqlite3.Database
-  });
-
-  await db.run(`CREATE TABLE IF NOT EXISTS agendamentos (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    nome TEXT,
-    data TEXT
-  )`);
-})();
-
-app.get('/'), (req, res) => {
-    return res.json("Ola")
-}
-
-app.get('/agendamentos', async (req, res) => {
-  const agendamentos = await db.all('SELECT * FROM agendamentos');
-  res.json(agendamentos);
+app.get("/", (req, res) => {
+  return res.json("hello world");
 });
 
-app.post('/agendamentos', async (req, res) => {
-  const { nome, data } = req.body;
-  const result = await db.run('INSERT INTO agendamentos (nome, data) VALUES (?, ?)', [nome, data]);
-  res.json({ id: result.lastID, nome, data });
+app.get("/users", (req, res) => {
+  return res.json(users);
 });
 
-app.delete('/agendamentos/:id', async (req, res) => {
+app.post("/users", (req, res) => {
+  const { name, email } = req.body;
+
+  const newUser = {
+    id: Math.random().toString(36),
+    name,
+    email,
+  };
+
+  users.push(newUser);
+  return res.json(newUser);
+});
+
+app.delete("/users/:id", (req, res) => {
   const { id } = req.params;
-  await db.run('DELETE FROM agendamentos WHERE id = ?', id);
-  res.json({ message: 'Agendamento excluído' });
+
+  const index = users.findIndex((user) => user.id === id);
+
+  if (index < 0) {
+    return res.status(404).json({ error });
+  }
+
+  users.splice(index, 1);
+  return res.status(204).json();
 });
 
-app.listen(port, () => {
-  console.log(`Servidor rodando na porta ${port}`);
-});
-
-export default app;
+app.listen(port, () => console.log(`listening on ${port}`));
