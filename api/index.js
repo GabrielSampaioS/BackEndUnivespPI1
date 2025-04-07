@@ -6,17 +6,29 @@ import cors from "cors";
 import mongoose from "mongoose";
 import agendaRoutes from "../routes/AgendaRoutes.js";
 import dotenv from "dotenv";
+
+// Carregar variáveis de ambiente
 dotenv.config();
 
 // ================================
-// Conexão com o MongoDB
+// Conexão com o MongoDB Atlas
 // ================================
-const mongoURI = process.env.MONGO_URI || "mongodb://localhost:27017/mydatabase";
+const MONGO_URI = process.env.MONGO_URI;
 
-mongoose.connect(mongoURI, {
+if (!MONGO_URI) {
+  //console.error("Erro: A variável de ambiente MONGO_URI não está definida."); // Funcionando
+  process.exit(1); // Finaliza o processo se a variável não estiver definida
+}
+
+console.log("Tentando conectar ao MongoDB com a URI:", MONGO_URI);
+
+mongoose.connect(MONGO_URI, {
 })
   .then(() => console.log("Conectado ao MongoDB"))
-  .catch((error) => console.error("Erro ao conectar ao MongoDB:", error));
+  .catch((error) => {
+    console.error("Erro ao conectar ao MongoDB:", error.message);
+    process.exit(1); // Finaliza o processo em caso de erro crítico
+  });
 
 // ================================
 // Configuração do Express
@@ -28,30 +40,29 @@ app.use(express.json());
 
 // Middleware para habilitar CORS
 app.use(cors({
-  origin: "*", // Substitua pela porta do seu frontend local
+  origin: "*", // Permitir requisições de qualquer origem
   methods: ["GET", "POST", "DELETE"], // Métodos permitidos
 }));
 
 // ================================
 // Rotas da API
 // ================================
-app.use("/api", agendaRoutes);
+app.use("/",agendaRoutes); // Prefixo para as rotas de agenda
 
-
+// ================================
 // Rota de erro 404
+// ================================
 app.use((req, res, next) => {
   res.status(404).json({ error: "Rota não encontrada" });
-  next();
 });
 
 // ================================
 // Inicialização do servidor localmente
-if (process.env.NODE_ENV !== "production") {
-  const PORT = 3000;
-  app.listen(PORT, () => {
-    console.log(`Servidor rodando Localmente em http://localhost:${PORT}`);
-  });
-}
+// ================================
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Servidor rodando em http://localhost:${PORT}`);
+});
 
 // ================================
 // Exportação do app

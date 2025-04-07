@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
-import Counter from "./Counter.js";
-
 
 const AgendaSchema = new mongoose.Schema({
-  id: { type: Number, unique: true }, // ID autoincrementado
+  //Id é criado automaticamente pelo MongoDB 
+  //Exemplo: 64c8b4d2e4b0f8a3f8d5e8c9
+    
   DataHoraSaida: { type: String, required: true },
   DataHoraChegada: { type: String, required: true },
   EnderecoSaida: { type: String, required: true },
@@ -14,19 +14,6 @@ const AgendaSchema = new mongoose.Schema({
   excluido: { type: Boolean, default: false },
 });
 
-// Middleware para autoincrementar o ID 
-// Gambiarra para autoincrementar o ID ? Talvez
-AgendaSchema.pre("save", async function (next) {
-  if (this.isNew) {
-    const counter = await Counter.findByIdAndUpdate(
-      { _id: "agendaId" },
-      { $inc: { seq: 1 } },
-      { new: true, upsert: true }
-    );
-    this.id = counter.seq;
-  }
-  next();
-});
 
 const Agenda = mongoose.model("Agenda", AgendaSchema);
 

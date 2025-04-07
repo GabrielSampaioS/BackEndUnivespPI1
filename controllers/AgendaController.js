@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Agenda from "../models/Agenda.js";
 
 // Criar um novo registro
@@ -25,13 +26,25 @@ export const listarRegistros = async (req, res) => {
 export const buscarRegistroPorId = async (req, res) => {
   try {
     const { id } = req.params;
+
+    // Verifica se o ID é um ObjectId válido
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: "ID inválido" });
+    }
+
+    // Busca o registro pelo ID
     const registro = await Agenda.findById(id);
+
     if (!registro) {
       return res.status(404).json({ error: "Registro não encontrado" });
     }
-    return res.status(200).json(registro);
+
+    res.status(200).json(registro);
   } catch (error) {
-    return res.status(500).json({ error: "Erro ao buscar registro", details: error.message });
+    res.status(500).json({
+      error: "Erro ao buscar registro",
+      details: error.message,
+    });
   }
 };
 
